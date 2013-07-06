@@ -4,7 +4,17 @@ PyDiff is the forerunner of ydiff, which I implemented around 2010 while I reste
 
 Later I developed ydiff, based on the algorithm of PyDiff, while supporting multiple languages. Unfortunately I never got a chance to write a Python parser for ydiff. Thus I put the original code for PyDiff here, just in hope it can be useful to someone.
 
-Currently the JavaScript navigation in PyDiff is broken because of changes made from ydiff. It should be quite easy to fix. So stay tuned.
+
+### Navigation is broken
+
+Currently the navigation code in PyDiff is broken because of HTML format changes made from ydiff. It should be quite easy to fix though. I'm working on it. So stay tuned.
+
+
+### Demo
+
+A demo of PyDiff's output (while it worked) can be found here:
+
+http://www.cs.indiana.edu/~yw21/demos/demo1-demo2.html
 
 
 

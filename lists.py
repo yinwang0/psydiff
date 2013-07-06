@@ -36,7 +36,7 @@ class Pair:
     def __iter__(self):
         return PairIterator(self)
     def __eq__(self, other):
-        if not IS(other, Pair):
+        if not isinstance(other, Pair):
             return False
         else:
             return self.fst == other.fst and self.snd == other.snd

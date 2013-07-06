@@ -122,16 +122,12 @@ def find_node_end(node, s, idxmap):
         ret = end_seq(s, node.attr, find_node_end(node.value, s, idxmap))
 
     elif isinstance(node, FunctionDef):
-        # add_missing_names(node, s, idxmap)
-        # ret = find_node_end(node.nameName, s, idxmap)
         ret = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, Lambda):
         ret = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, ClassDef):
-        # add_missing_names(node, s, idxmap)
-        # ret = find_node_end(node.nameName, s, idxmap)
         ret = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, Call):
@@ -251,31 +247,35 @@ def add_missing_names(node, s, idxmap):
 
     elif isinstance(node, ClassDef):
         start = find_node_start(node, s, idxmap) + len('class')
-        node.nameName = str2Name(s, start, idxmap)
-        node._fields += ('nameName',)
+        node.name_node = str_to_name(s, start, idxmap)
+        node._fields += ('name_node',)
 
     elif isinstance(node, FunctionDef):
         start = find_node_start(node, s, idxmap) + len('def')
-        node.nameName = str2Name(s, start, idxmap)
-        node._fields += ('nameName',)
+        node.name_node = str_to_name(s, start, idxmap)
+        node._fields += ('name_node',)
+
+        # keyword_start = find_node_start(node, s, idxmap)
+        # node.keyword_node = str_to_name(s, keyword_start, idxmap)
+        # node._fields += ('keyword_node',)
 
         if node.args.vararg <> None:
             if len(node.args.args) > 0:
                 vstart = find_node_end(node.args.args[-1], s, idxmap)
             else:
-                vstart = find_node_end(node.nameName, s, idxmap)
-            vname = str2Name(s, vstart, idxmap)
-            node.varargName = vname
+                vstart = find_node_end(node.name_node, s, idxmap)
+            vname = str_to_name(s, vstart, idxmap)
+            node.vararg_name = vname
         else:
-            node.varargName = None
-        node._fields += ('varargName',)
+            node.vararg_name = None
+        node._fields += ('vararg_name',)
 
         if node.args.kwarg <> None:
             if len(node.args.args) > 0:
                 kstart = find_node_end(node.args.args[-1], s, idxmap)
             else:
-                kstart = find_node_end(node.varargName, s, idxmap)
-            kname = str2Name(s, kstart, idxmap)
+                kstart = find_node_end(node.vararg_name, s, idxmap)
+            kname = str_to_name(s, kstart, idxmap)
             node.kwarg_name = kname
         else:
             node.kwarg_name = None
@@ -283,7 +283,7 @@ def add_missing_names(node, s, idxmap):
 
     elif isinstance(node, Attribute):
         start = find_node_end(node.value, s, idxmap)
-        name = str2Name(s, start, idxmap)
+        name = str_to_name(s, start, idxmap)
         node.attr_name = name
         node._fields = ('value', 'attr_name')  # remove attr for node size accuracy
 
@@ -301,19 +301,19 @@ def add_missing_names(node, s, idxmap):
         else:
             start = find_node_start(node, s, idxmap)
         ops = convert_ops([node.op], s, start, idxmap)
-        node.opName = ops[0]
-        node._fields += ('opName',)
+        node.op_node = ops[0]
+        node._fields += ('op_node',)
 
     elif isinstance(node, Import):
-        nameNames = []
+        name_nodes = []
         next = find_node_start(node, s, idxmap) + len('import')
-        name = str2Name(s, next, idxmap)
+        name = str_to_name(s, next, idxmap)
         while name <> None and next < len(s) and s[next] <> '\n':
-            nameNames.append(name)
+            name_nodes.append(name)
             next = name.node_end
-            name = str2Name(s, next, idxmap)
-        node.nameNames = nameNames
-        node._fields += ('nameNames',)
+            name = str_to_name(s, next, idxmap)
+        node.name_nodes = name_nodes
+        node._fields += ('name_nodes',)
 
     node.extraAttribute = True
 
@@ -394,25 +394,26 @@ def map_line_col(idxmap, idx):
 
 
 # convert string to Name
-def str2Name(s, start, idxmap):
+def str_to_name(s, start, idxmap):
     i = start;
     while i < len(s) and not is_alpha(s[i]):
-        i += 1
-    startIdx = i
+        i = i + 1
+    name_start = i
+
     ret = []
     while i < len(s) and is_alpha(s[i]):
         ret.append(s[i])
         i += 1
-    endIdx = i
-    id1 = ''.join(ret)
+    name_end = i
 
+    id1 = ''.join(ret)
     if id1 == '':
         return None
     else:
         name = Name(id1, None)
-        name.node_start = startIdx
-        name.node_end = endIdx
-        name.lineno, name.col_offset = map_line_col(idxmap, startIdx)
+        name.node_start = name_start
+        name.node_end = name_end
+        name.lineno, name.col_offset = map_line_col(idxmap, name_start)
         return name
 
 
@@ -425,13 +426,13 @@ def convert_ops(ops, s, start, idxmap):
     while i < len(s) and j < len(syms):
         oplen = len(syms[j])
         if s[i:i+oplen] == syms[j]:
-            opName = Name(syms[j], None)
-            opName.node_start = i
-            opName.node_end = i+oplen
-            opName.lineno, opName.col_offset = map_line_col(idxmap, i)
-            ret.append(opName)
+            op_node = Name(syms[j], None)
+            op_node.node_start = i
+            op_node.node_end = i+oplen
+            op_node.lineno, op_node.col_offset = map_line_col(idxmap, i)
+            ret.append(op_node)
             j += 1
-            i = opName.node_end
+            i = op_node.node_end
         else:
             i += 1
     return ret

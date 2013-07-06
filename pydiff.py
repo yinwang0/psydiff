@@ -228,8 +228,8 @@ def diff_node(node1, node2, env1, env2, depth, move):
     if (isinstance(node1, Attribute) and isinstance(node2, Name) or
         isinstance(node1, Name) and isinstance(node2, Attribute) or
         isinstance(node1, Attribute) and isinstance(node2, Attribute)):
-        s1 = attr2str(node1)
-        s2 = attr2str(node2)
+        s1 = attr_to_str(node1)
+        s2 = attr_to_str(node2)
         if s1 <> None and s2 <> None:
             cost = str_dist(s1, s2)
             return (modify_node(node1, node2, cost), cost)
@@ -282,13 +282,13 @@ def diff_list(table, ls1, ls2, env1, env2, depth, move):
              is_frame(ls2[0]) and
              not nodeFramed(ls1[0], m0) and
              not nodeFramed(ls2[0], m0))):
-            frameChange = modify_node(ls1[0], ls2[0], c0)
+            frame_change = modify_node(ls1[0], ls2[0], c0)
         else:
-            frameChange = nil
+            frame_change = nil
 
         # short cut 1 (func and classes with same names)
         if can_move(ls1[0], ls2[0], c0):
-            return (append(frameChange, m0, m1), cost1)
+            return (append(frame_change, m0, m1), cost1)
 
         else:  # do more work
             (m2, c2) = diff_list(table, ls1[1:], ls2, env1, env2, depth, move)
@@ -298,7 +298,7 @@ def diff_list(table, ls1, ls2, env1, env2, depth, move):
 
             if (not different_def(ls1[0], ls2[0]) and
                 cost1 <= cost2 and cost1 <= cost3):
-                return (append(frameChange, m0, m1), cost1)
+                return (append(frame_change, m0, m1), cost1)
             elif (cost2 <= cost3):
                 return (append(del_node(ls1[0]), m2), cost2)
             else:
@@ -411,7 +411,7 @@ def get_moves(ds, round=0):
     matched = []
     newChanges, total = nil, 0
 
-    print("\n[get_moves #%d] %d * %d = %d pairs of nodes to consider ..."
+    print("\n[move #%d] %d * %d = %d pairs of nodes to consider ..."
           % (round, len(dels), len(adds), len(dels) * len(adds)))
 
     for d0 in dels:
@@ -511,20 +511,19 @@ def diff(file1, file2, move=True):
     improve_ast(node2, lines2, file2, 'right')
 
 
-    print("[parse] finished in %s. Now start to diff." % sec2min(checkpoint()))
+    print("[parse] finished in %s. Now start to diff." % sec_to_min(checkpoint()))
 
     # get the changes
 
     (changes, cost) = diff_node(node1, node2, nil, nil, 0, False)
 
     print ("\n[diff] processed %d nodes in %s."
-           % (stat.diff_count, sec2min(checkpoint())))
+           % (stat.diff_count, sec_to_min(checkpoint())))
 
     if move:
-#        print "changes:", changes
         (changes, cost) = closure((changes, cost))
 
-        print("\n[closure] finished in %s." % sec2min(checkpoint()))
+        print("\nfinished in %s." % sec_to_min(checkpoint()))
 
 
 
@@ -547,49 +546,13 @@ def diff(file1, file2, move=True):
 
 
     #---------------------- generation HTML ---------------------
-    # write left file
-    left_changes = filterlist(lambda p: p.orig <> None, changes)
-    html1 = gen_html(lines1, left_changes, 'left')
 
-    outname1 = base1 + '.html'
-    outfile1 = open(outname1, 'w')
-    outfile1.write(html1)
-    outfile1.write('<div class="stats"><pre class="stats">')
-    outfile1.write(report)
-    outfile1.write('</pre></div>')
-    outfile1.write('</body>\n')
-    outfile1.write('</html>\n')
-    outfile1.close()
-
-
-    # write right file
-    right_changes = filterlist(lambda p: p.cur <> None, changes)
-    html2 = gen_html(lines2, right_changes, 'right')
-
-    outname2 = base2 + '.html'
-    outfile2 = open(outname2, 'w')
-    outfile2.write(html2)
-    outfile2.write('<div class="stats"><pre class="stats">')
-    outfile2.write(report)
-    outfile2.write('</pre></div>')
-    outfile2.write('</body>\n')
-    outfile2.write('</html>\n')
-    outfile2.close()
-
-
-    # write frame file
-    framename = base1 + "-" + base2 + ".html"
-    framefile = open(framename, 'w')
-    framefile.write('<frameset cols="50%,50%">\n')
-    framefile.write('<frame name="left" src="' + base1 + '.html">\n')
-    framefile.write('<frame name="right" src="' + base2 + '.html">\n')
-    framefile.write('</frameset>\n')
-    framefile.close()
+    htmlize(changes, file1, file2, lines1, lines2)
 
     dur = time.time() - start_time
     print("\n[summary] Job finished at %s, %s" %
           (time.ctime(), time.tzname[0]))
-    print("\n\tTotal duration: %s" % sec2min(dur))
+    print("\n\tTotal duration: %s" % sec_to_min(dur))
 
 
 
@@ -608,7 +571,7 @@ def cleanup():
 
 
 
-def sec2min(s):
+def sec_to_min(s):
     if s < 60:
         return ("%.1f seconds" % s)
     else:
@@ -655,121 +618,6 @@ def diff_file(file1, file2):
     node1 = parse_file(file1)
     node2 = parse_file(file2)
     return closure(diff_node(node1, node2, nil, nil, 0, False))
-
-
-
-
-# printing support for debugging use
-def iter_fields(node):
-    """Iterate over all existing fields, excluding 'ctx'."""
-    for field in node._fields:
-        try:
-            if field <> 'ctx':
-                yield field, getattr(node, field)
-        except AttributeError:
-            pass
-
-
-def dump(node, annotate_fields=True, include_attributes=False):
-    def _format(node):
-        if isinstance(node, AST):
-            fields = [(a, _format(b)) for a, b in iter_fields(node)]
-            rv = '%s(%s' % (node.__class__.__name__, ', '.join(
-                ('%s=%s' % field for field in fields)
-                if annotate_fields else
-                (b for a, b in fields)
-            ))
-            if include_attributes and node._attributes:
-                rv += fields and ', ' or ' '
-                rv += ', '.join('%s=%s' % (a, _format(getattr(node, a)))
-                                for a in node._attributes)
-            return rv + ')'
-        elif isinstance(node, list):
-            return '[%s]' % ', '.join(_format(x) for x in node)
-        return repr(node)
-    if not isinstance(node, AST):
-        raise TypeError('expected AST, got %r' % node.__class__.__name__)
-    return _format(node)
-
-def print_list(ls):
-    if (ls == None or ls == []):
-        return ""
-    elif (len(ls) == 1):
-        return str(ls[0])
-    else:
-        return str(ls)
-
-
-
-
-# for debugging use
-def printAst(node):
-    if (isinstance(node, Module)):
-        ret = "module:" + str(node.body)
-    elif (isinstance(node, Name)):
-        ret = str(node.id)
-    elif (isinstance(node, Attribute)):
-        if hasattr(node, 'attr_name'):
-            ret = str(node.value) + "." + str(node.attr_name)
-        else:
-            ret = str(node.value) + "." + str(node.attr)
-    elif (isinstance(node, FunctionDef)):
-        if hasattr(node, 'nameName'):
-            ret = "fun:" + str(node.nameName)
-        else:
-            ret = "fun:" + str(node.name)
-    elif (isinstance(node, ClassDef)):
-        ret = "class:" + str(node.name)
-    elif (isinstance(node, Call)):
-        ret = "call:" + str(node.func) + ":(" + print_list(node.args) + ")"
-    elif (isinstance(node, Assign)):
-        ret = "(" + print_list(node.targets) + " <- " + printAst(node.value) + ")"
-    elif (isinstance(node, If)):
-        ret = "if " + str(node.test) + ":" + print_list(node.body) + ":" + print_list(node.orelse)
-    elif (isinstance(node, Compare)):
-        ret = str(node.left) + ":" + print_list(node.ops) + ":" + print_list(node.comparators)
-    elif (isinstance(node, Return)):
-        ret = "return " + repr(node.value)
-    elif (isinstance(node, Print)):
-        ret = "print(" + (str(node.dest) + ", " if (node.dest!=None) else "") + print_list(node.values) + ")"
-    elif (isinstance(node, Expr)):
-        ret = "expr:" + str(node.value)
-    elif (isinstance(node, Num)):
-        ret = "num:" + str(node.n)
-    elif (isinstance(node, Str)):
-        ret = 'str:"' + str(node.s) + '"'
-    elif (isinstance(node, BinOp)):
-        ret = str(node.left) + " " + str(node.op) + " " + str(node.right)
-    elif (isinstance(node, Add)):
-        ret = '+'
-    elif (isinstance(node, Mult)):
-        ret = '*'
-    elif isinstance(node, NotEq):
-        ret = '<>'
-    elif (isinstance(node, Eq)):
-        ret = '=='
-    elif (isinstance(node, Pass)):
-        ret = "pass"
-    elif isinstance(node,list):
-        ret = print_list(node)
-    else:
-        ret = str(type(node))
-
-    if hasattr(node, 'lineno'):
-        return re.sub("@[0-9]+", '', ret) + "@" + str(node.lineno)
-    elif hasattr(node, 'node_start'):
-        return re.sub("@[0-9]+", '', ret) + "%" + str(node_start(node))
-    else:
-        return ret
-
-
-def install_printer():
-    import inspect, ast
-    for name, obj in inspect.getmembers(ast):
-        if (inspect.isclass(obj) and not (obj == AST)):
-            obj.__repr__ = printAst
-
-install_printer()
 
 
 ## if run under command line

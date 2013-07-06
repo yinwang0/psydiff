@@ -2,19 +2,23 @@
 
 PyDiff is the forerunner of ydiff, which I implemented around 2010 while I rested at home after a surgery.
 
-Later I developed ydiff, based on the algorithm of PyDiff, while supporting multiple languages. Unfortunately I never got a chance to write a Python parser for ydiff. Thus I put the original code for PyDiff here, just in hope it can be useful to someone.
+Later I developed ydiff based on the same algorithm of PyDiff, while supporting multiple languages. Unfortunately I never got a chance to write a Python parser for ydiff. Thus I put the original code for PyDiff here, just in hope it can be useful to someone.
 
 
-### Navigation is broken
 
-Currently the navigation code in PyDiff is broken because of HTML format changes made from ydiff. It should be quite easy to fix though. I'm working on it. So stay tuned.
+### Usage
+
+Just run pydiff.py from the command line:
+
+    ./pydiff.py demos/list1.py demos/list2.py
+
 
 
 ### Demo
 
 A demo of PyDiff's output (while it worked) can be found here:
 
-http://www.cs.indiana.edu/~yw21/demos/demo1-demo2.html
+http://www.yinwang.org/resources/list1-list2.html
 
 
 

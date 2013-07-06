@@ -141,9 +141,9 @@ def node_name(node):
         return None
 
 
-def attr2str(node):
+def attr_to_str(node):
     if isinstance(node, Attribute):
-        vName = attr2str(node.value)
+        vName = attr_to_str(node.value)
         if vName <> None:
             return vName + "." + node.attr
         else:

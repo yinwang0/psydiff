@@ -1,6 +1,13 @@
 ### PyDiff: a structural comparison tool for Python
 
-PyDiff is the forerunner of ydiff, which I implemented around 2011. Later I developed ydiff based on the same algorithm of PyDiff, while supporting multiple languages. Unfortunately I never got a chance to write a Python parser for ydiff. Thus I put the original code for PyDiff here, just in hope it can be useful to someone.
+PyDiff is the forerunner of ydiff, which I implemented around 2011. Later I developed ydiff based on the same algorithm, while supporting multiple languages. Unfortunately I never got a chance to write a Python parser for ydiff. Thus I put the original code for PyDiff here, just in hope it can be useful to someone.
+
+
+
+### Installation
+
+1. Copy the whole directory to somewhere in your file system
+2. Add the path to the system's "PATH variable"
 
 
 
@@ -9,6 +16,12 @@ PyDiff is the forerunner of ydiff, which I implemented around 2011. Later I deve
 Just run pydiff.py from the command line:
 
     ./pydiff.py demos/list1.py demos/list2.py
+
+This will generate a HTML file named list1-list2.html in the current directory.
+You can then use your browser to open this file and browse around the code.
+
+The HTML is a standalone entity (CSS styles and JavaScript embedded). You can
+put it anywhere you like and still be able to view it.
 
 
 

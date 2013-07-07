@@ -1,6 +1,7 @@
 #-------------------------------------------------------------
 #            tests and operations on AST nodes
 #-------------------------------------------------------------
+import os
 import sys
 import re
 import cProfile
@@ -287,4 +288,10 @@ def parse_file(filename):
     ast = parse(lines)
     improve_ast(ast, lines, filename, 'left')
     return ast
+
+
+def get_install_path():
+    exec_name = os.path.abspath(__file__)
+    path = exec_name.rindex('/') + 1
+    return exec_name[:path]
 

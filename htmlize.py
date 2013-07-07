@@ -2,6 +2,8 @@
 #                        HTML generation
 #-------------------------------------------------------------
 
+import os
+
 from parameters import *
 from ast import *
 from utils import *
@@ -47,14 +49,33 @@ def uid(node):
     return str(uid_count)
 
 
-
 def html_header():
+
+    install_path = get_install_path()
+
+    js_filename = install_path + 'nav.js'
+    js_file = open(js_filename, 'r')
+    js_text = js_file.read()
+    js_file.close()
+
+    css_filename = install_path + 'diff.css'
+    css_file = open(css_filename, 'r')
+    css_text = css_file.read()
+    css_file.close()
+
     out = []
     out.append('<html>\n')
     out.append('<head>\n')
     out.append('<META http-equiv="Content-Type" content="text/html; charset=utf-8">\n')
-    out.append('<LINK href="diff.css" rel="stylesheet" type="text/css">\n')
-    out.append('<script type="text/javascript" src="nav.js"></script>\n')
+
+    out.append('<style>\n')
+    out.append(css_text)
+    out.append('\n</style>\n')
+
+    out.append('<script type="text/javascript">\n')
+    out.append(js_text)
+    out.append('\n</script>\n')
+
     out.append('</head>\n')
     out.append('<body>\n')
     return ''.join(out)
@@ -86,7 +107,7 @@ def htmlize(changes, file1, file2, text1, text2):
     tags1 = change_tags(changes, 'left')
     tags2 = change_tags(changes, 'right')
     tagged_text1 = apply_tags(text1, tags1)
-    tagged_text2 = apply_tags(text2, tags2)    
+    tagged_text2 = apply_tags(text2, tags2)
 
     outname = base_name(file1) + '-' + base_name(file2) + '.html'
     outfile = open(outname, 'w')
@@ -156,12 +177,12 @@ def span_start(change):
 
 def link_start(change, side):
     cls = change_class(change)
-    
+
     if side == 'left':
         me, other = change.orig, change.cur
     else:
         me, other = change.cur, change.orig
-    
+
     return ('<a id=' + qs(uid(me)) +
             ' tid=' + qs(uid(other)) +
             ' class=' + qs(cls) +

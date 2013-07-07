@@ -92,13 +92,13 @@ def find_node_end(node, s, idxmap):
         return node.node_end
 
     elif isinstance(node, list):
-        ret = find_node_end(node[-1], s, idxmap)
+        the_end = find_node_end(node[-1], s, idxmap)
 
     elif isinstance(node, Module):
-        ret = find_node_end(node.body[-1], s, idxmap)
+        the_end = find_node_end(node.body[-1], s, idxmap)
 
     elif isinstance(node, Expr):
-        ret = find_node_end(node.value, s, idxmap)
+        the_end = find_node_end(node.value, s, idxmap)
 
     elif isinstance(node, Str):
         i = find_node_start(node, s, idxmap)
@@ -113,121 +113,121 @@ def find_node_end(node, s, idxmap):
             i += 1
         else:
             print "illegal:", i, s[i]
-        ret = end_seq(s, q, i)
+        the_end = end_seq(s, q, i)
 
     elif isinstance(node, Name):
-        ret = find_node_start(node, s, idxmap) + len(node.id)
+        the_end = find_node_start(node, s, idxmap) + len(node.id)
 
     elif isinstance(node, Attribute):
-        ret = end_seq(s, node.attr, find_node_end(node.value, s, idxmap))
+        the_end = end_seq(s, node.attr, find_node_end(node.value, s, idxmap))
 
     elif isinstance(node, FunctionDef):
-        ret = find_node_end(node.body, s, idxmap)
+        the_end = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, Lambda):
-        ret = find_node_end(node.body, s, idxmap)
+        the_end = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, ClassDef):
-        ret = find_node_end(node.body, s, idxmap)
+        the_end = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, Call):
-        ret = match_paren(s, '(', ')', find_node_end(node.func, s, idxmap))
+        the_end = match_paren(s, '(', ')', find_node_end(node.func, s, idxmap))
 
     elif isinstance(node, Yield):
-        ret = find_node_end(node.value, s, idxmap)
+        the_end = find_node_end(node.value, s, idxmap)
 
     elif isinstance(node, Return):
         if node.value <> None:
-            ret = find_node_end(node.value, s, idxmap)
+            the_end = find_node_end(node.value, s, idxmap)
         else:
-            ret = find_node_start(node, s, idxmap) + len('return')
+            the_end = find_node_start(node, s, idxmap) + len('return')
 
     elif isinstance(node, Print):
-        ret = start_seq(s, '\n', find_node_start(node, s, idxmap))
+        the_end = start_seq(s, '\n', find_node_start(node, s, idxmap))
 
     elif (isinstance(node, For) or
           isinstance(node, While) or
           isinstance(node, If) or
           isinstance(node, IfExp)):
         if node.orelse <> []:
-            ret = find_node_end(node.orelse, s, idxmap)
+            the_end = find_node_end(node.orelse, s, idxmap)
         else:
-            ret = find_node_end(node.body, s, idxmap)
+            the_end = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, Assign) or isinstance(node, AugAssign):
-        ret = find_node_end(node.value, s, idxmap)
+        the_end = find_node_end(node.value, s, idxmap)
 
     elif isinstance(node, BinOp):
-        ret = find_node_end(node.right, s, idxmap)
+        the_end = find_node_end(node.right, s, idxmap)
 
     elif isinstance(node, BoolOp):
-        ret = find_node_end(node.values[-1], s, idxmap)
+        the_end = find_node_end(node.values[-1], s, idxmap)
 
     elif isinstance(node, Compare):
-        ret = find_node_end(node.comparators[-1], s, idxmap)
+        the_end = find_node_end(node.comparators[-1], s, idxmap)
 
     elif isinstance(node, UnaryOp):
-        ret = find_node_end(node.operand, s, idxmap)
+        the_end = find_node_end(node.operand, s, idxmap)
 
     elif isinstance(node, Num):
-        ret = find_node_start(node, s, idxmap) + len(str(node.n))
+        the_end = find_node_start(node, s, idxmap) + len(str(node.n))
 
     elif isinstance(node, List):
-        ret = match_paren(s, '[', ']', find_node_start(node, s, idxmap));
+        the_end = match_paren(s, '[', ']', find_node_start(node, s, idxmap));
 
     elif isinstance(node, Subscript):
-        ret = match_paren(s, '[', ']', find_node_start(node, s, idxmap));
+        the_end = match_paren(s, '[', ']', find_node_start(node, s, idxmap));
 
     elif isinstance(node, Tuple):
-        ret = find_node_end(node.elts[-1], s, idxmap)
+        the_end = find_node_end(node.elts[-1], s, idxmap)
 
     elif isinstance(node, Dict):
-        ret = match_paren(s, '{', '}', find_node_start(node, s, idxmap));
+        the_end = match_paren(s, '{', '}', find_node_start(node, s, idxmap));
 
     elif isinstance(node, TryExcept):
         if node.orelse <> []:
-            ret = find_node_end(node.orelse, s, idxmap)
+            the_end = find_node_end(node.orelse, s, idxmap)
         elif node.handlers <> []:
-            ret = find_node_end(node.handlers, s, idxmap)
+            the_end = find_node_end(node.handlers, s, idxmap)
         else:
-            ret = find_node_end(node.body, s, idxmap)
+            the_end = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, ExceptHandler):
-        ret = find_node_end(node.body, s, idxmap)
+        the_end = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, Pass):
-        ret = find_node_start(node, s, idxmap) + len('pass')
+        the_end = find_node_start(node, s, idxmap) + len('pass')
 
     elif isinstance(node, Break):
-        ret = find_node_start(node, s, idxmap) + len('break')
+        the_end = find_node_start(node, s, idxmap) + len('break')
 
     elif isinstance(node, Continue):
-        ret = find_node_start(node, s, idxmap) + len('continue')
+        the_end = find_node_start(node, s, idxmap) + len('continue')
 
     elif isinstance(node, Global):
-        ret = start_seq(s, '\n', find_node_start(node, s, idxmap))
+        the_end = start_seq(s, '\n', find_node_start(node, s, idxmap))
 
     elif isinstance(node, Import):
-        ret = find_node_start(node, s, idxmap) + len('import')
+        the_end = find_node_start(node, s, idxmap) + len('import')
 
     elif isinstance(node, ImportFrom):
-        ret = find_node_start(node, s, idxmap) + len('from')
+        the_end = find_node_start(node, s, idxmap) + len('from')
 
     else:
         # print "[find_node_end] unrecognized node:", node, "type:", type(node)
         start = find_node_start(node, s, idxmap)
         if start <> None:
-            ret = start + 3
+            the_end = start + 3
         else:
-            ret = None
+            the_end = None
 
-    if ret == None and hasattr(node, 'lineno'):
+    if the_end == None and hasattr(node, 'lineno'):
         raise TypeError("got None for node that has lineno", node)
 
-    if isinstance(node, AST) and ret <> None:
-        node.node_end = ret
+    if isinstance(node, AST) and the_end <> None:
+        node.node_end = the_end
 
-    return ret
+    return the_end
 
 
 

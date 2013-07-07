@@ -204,6 +204,7 @@ def debug(*args):
 
 def dot():
     sys.stdout.write('.')
+    sys.stdout.flush()
 
 
 def is_alpha(c):

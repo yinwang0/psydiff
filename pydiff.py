@@ -7,10 +7,10 @@ import cProfile
 from ast import *
 from lists import *
 
+from parameters import *
 from improve_ast import *
 from htmlize import *
 from utils import *
-from parameters import *
 
 
 
@@ -58,7 +58,7 @@ class Change:
 # * modification
 # * deletion
 # *insertion
-def modify_node(node1, node2, cost):
+def mod_node(node1, node2, cost):
     return loner(Change(node1, node2, cost))
 
 def del_node(node):
@@ -204,26 +204,26 @@ def diff_node(node1, node2, env1, env2, depth, move):
         dot()
 
     if node1 == node2:
-        return (modify_node(node1, node2, 0), 0)
+        return (mod_node(node1, node2, 0), 0)
 
     if isinstance(node1, Num) and isinstance(node2, Num):
         if node1.n == node2.n:
-            return (modify_node(node1, node2, 0), 0)
+            return (mod_node(node1, node2, 0), 0)
         else:
-            return (modify_node(node1, node2, 1), 1)
+            return (mod_node(node1, node2, 1), 1)
 
     if isinstance(node1, Str) and isinstance(node2, Str):
         cost = str_dist(node1.s, node2.s)
-        return (modify_node(node1, node2, cost), cost)
+        return (mod_node(node1, node2, cost), cost)
 
     if (isinstance(node1, Name) and isinstance(node2, Name)):
         v1 = lookup(node1.id, env1)
         v2 = lookup(node2.id, env2)
         if v1 <> v2 or (v1 == None and v2 == None):
             cost = str_dist(node1.id, node2.id)
-            return (modify_node(node1, node2, cost), cost)
+            return (mod_node(node1, node2, cost), cost)
         else:                           # same variable
-            return (modify_node(node1, node2, 0), 0)
+            return (mod_node(node1, node2, 0), 0)
 
     if (isinstance(node1, Attribute) and isinstance(node2, Name) or
         isinstance(node1, Name) and isinstance(node2, Attribute) or
@@ -232,7 +232,7 @@ def diff_node(node1, node2, env1, env2, depth, move):
         s2 = attr_to_str(node2)
         if s1 <> None and s2 <> None:
             cost = str_dist(s1, s2)
-            return (modify_node(node1, node2, cost), cost)
+            return (mod_node(node1, node2, cost), cost)
         # else fall through for things like f(x).y vs x.y
 
     if isinstance(node1, Module) and isinstance(node2, Module):
@@ -255,7 +255,7 @@ def diff_node(node1, node2, env1, env2, depth, move):
 
     if (type(node1) == type(node2) and
              is_empty_container(node1) and is_empty_container(node2)):
-        return (modify_node(node1, node2, 0), 0)
+        return (mod_node(node1, node2, 0), 0)
 
     # all unmatched types and unequal values
     return trysub((append(del_node(node1), ins_node(node2)),
@@ -282,7 +282,7 @@ def diff_list(table, ls1, ls2, env1, env2, depth, move):
              is_frame(ls2[0]) and
              not nodeFramed(ls1[0], m0) and
              not nodeFramed(ls2[0], m0))):
-            frame_change = modify_node(ls1[0], ls2[0], c0)
+            frame_change = mod_node(ls1[0], ls2[0], c0)
         else:
             frame_change = nil
 
@@ -360,7 +360,7 @@ def diff_subnode(node1, node2, env1, env2, depth, move):
                 (m0, c0) = diff_node(node1, f, env1, env2, depth+1, move)
                 if can_move(node1, f, c0):
                     if not isinstance(f, list):
-                        m1 = modify_node(node1, f, c0)
+                        m1 = mod_node(node1, f, c0)
                     else:
                         m1 = nil
                     framecost = node_size(node2) - node_size(node1)
@@ -373,7 +373,7 @@ def diff_subnode(node1, node2, env1, env2, depth, move):
                 if can_move(f, node2, c0):
                     framecost = node_size(node1) - node_size(node2)
                     if not isinstance(f, list):
-                        m1 = modify_node(f, node2, c0)
+                        m1 = mod_node(f, node2, c0)
                     else:
                         m1 = nil
                     m2 = loner(Change(node1, None, framecost, True))
@@ -433,7 +433,7 @@ def get_moves(ds, round=0):
                 if (not nodeFramed(node1, changes) and
                     not nodeFramed(node2, changes) and
                     is_def(node1) and is_def(node2)):
-                    newChanges = append(modify_node(node1, node2, cost),
+                    newChanges = append(mod_node(node1, node2, cost),
                                         newChanges)
 
                 stat.move_savings += nterms
@@ -456,7 +456,7 @@ def get_moves(ds, round=0):
 # Get moves repeatedly because new moves may introduce new
 # deletions and insertions.
 
-def closure(res):
+def find_all_moves(res):
     (changes, cost) = res
     matched = None
     moveround = 1
@@ -521,7 +521,7 @@ def diff(file1, file2, move=True):
            % (stat.diff_count, sec_to_min(checkpoint())))
 
     if move:
-        (changes, cost) = closure((changes, cost))
+        (changes, cost) = find_all_moves((changes, cost))
 
         print("\nfinished in %s." % sec_to_min(checkpoint()))
 
@@ -598,7 +598,7 @@ def checkpoint(init=None):
 #                      text-based interfaces
 #-------------------------------------------------------------
 
-## text-based main command
+## print the diffs as text
 def print_diff(file1, file2):
     (m, c) = diff_file(file1, file2)
     print "----------", file1, "<<<", c, ">>>", file2, "-----------"
@@ -617,7 +617,7 @@ def print_diff(file1, file2):
 def diff_file(file1, file2):
     node1 = parse_file(file1)
     node2 = parse_file(file2)
-    return closure(diff_node(node1, node2, nil, nil, 0, False))
+    return find_all_moves(diff_node(node1, node2, nil, nil, 0, False))
 
 
 ## if run under command line

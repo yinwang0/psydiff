@@ -1,8 +1,6 @@
 ### PyDiff: a structural comparison tool for Python
 
-PyDiff is the forerunner of ydiff, which I implemented around 2011 while I rested at home after a surgery.
-
-Later I developed ydiff based on the same algorithm of PyDiff, while supporting multiple languages. Unfortunately I never got a chance to write a Python parser for ydiff. Thus I put the original code for PyDiff here, just in hope it can be useful to someone.
+PyDiff is the forerunner of ydiff, which I implemented around 2011. Later I developed ydiff based on the same algorithm of PyDiff, while supporting multiple languages. Unfortunately I never got a chance to write a Python parser for ydiff. Thus I put the original code for PyDiff here, just in hope it can be useful to someone.
 
 
 

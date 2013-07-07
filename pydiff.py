@@ -2,6 +2,7 @@
 
 import sys
 import re
+import time
 import cProfile
 
 from ast import *
@@ -485,7 +486,6 @@ def find_all_moves(res):
 
 def diff(file1, file2, move=True):
 
-    import time
     print("\nJob started at %s, %s\n" % (time.ctime(), time.tzname[0]))
     start_time = time.time()
     checkpoint(start_time)

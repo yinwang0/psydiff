@@ -15,8 +15,8 @@ from utils import *
 
 
 #------------------------------- types ------------------------------
-# global storage of running stats
 class Stat:
+    "storage for stat counters"
     def __init__(self):
         self.reset()
 

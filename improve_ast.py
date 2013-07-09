@@ -289,7 +289,7 @@ def add_missing_names(node, s, idxmap):
 
     elif isinstance(node, Compare):
         node.opsName = convert_ops(node.ops, s,
-                                  find_node_start(node, s, idxmap), idxmap)
+                                   find_node_start(node, s, idxmap), idxmap)
         node._fields += ('opsName',)
 
     elif (isinstance(node, BoolOp) or
@@ -419,7 +419,14 @@ def str_to_name(s, start, idxmap):
 
 
 def convert_ops(ops, s, start, idxmap):
-    syms = map(lambda op: ops_map[type(op)], ops)
+    syms = []
+    for op in ops:
+        if ops_map.has_key(type(op)):
+            syms += ops_map[type(op)]
+        else:
+            print("[WARNING] operator %s is missing from ops_map, " \
+                  "please report the bug on GitHub" % op)
+
     i = start
     j = 0
     ret = []
@@ -449,6 +456,8 @@ ops_map = {
     GtE    : '>=',
     In     : 'in',
     NotIn  : 'not in',
+    Is     : 'is',
+    IsNot  : 'is not',
 
     # BoolOp
     Or  : 'or',
@@ -461,6 +470,8 @@ ops_map = {
     Mult : '*',
     Div  : '/',
     Mod  : '%',
+    RShift : '>>',
+    LShift : '<<',
 
     # UnaryOp
     USub : '-',

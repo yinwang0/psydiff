@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import re
 import time
 import cProfile
 
@@ -42,10 +41,7 @@ class Change:
     def __repr__(self):
         fr = "F" if self.is_frame else "-"
         def hole(x):
-            if x == None:
-                return "[]"
-            else:
-                return x
+            return [] if x==None else x
         return ("(C:" + str(hole(self.orig)) + ":" + str(hole(self.cur))
                 + ":" + str(self.cost) + ":" + str(self.similarity())
                 + ":" + fr + ")")
@@ -58,7 +54,7 @@ class Change:
 # Three major kinds of changes:
 # * modification
 # * deletion
-# *insertion
+# * insertion
 def mod_node(node1, node2, cost):
     return loner(Change(node1, node2, cost))
 
@@ -91,14 +87,14 @@ class Cache:
 # 2-D array table for memoization of dynamic programming
 def create_table(x, y):
     table = []
-    for i in range(x+1):
+    for i in xrange(x+1):
         table.append([None] * (y+1))
     return table
 
-def tableLookup(t, x, y):
+def table_lookup(t, x, y):
     return t[x][y]
 
-def tablePut(t, x, y, v):
+def table_put(t, x, y, v):
     t[x][y] = v
 
 
@@ -140,10 +136,10 @@ def str_dist(s1, s2):
 # similar to the structure of diff_list
 def dist1(table, s1, s2):
     def memo(v):
-        tablePut(table, len(s1), len(s2), v)
+        table_put(table, len(s1), len(s2), v)
         return v
 
-    cached = tableLookup(table, len(s1), len(s2))
+    cached = table_lookup(table, len(s1), len(s2))
     if (cached <> None):
         return cached
 
@@ -271,7 +267,7 @@ def diff_node(node1, node2, env1, env2, depth, move):
 def diff_list(table, ls1, ls2, env1, env2, depth, move):
 
     def memo(v):
-        tablePut(table, len(ls1), len(ls2), v)
+        table_put(table, len(ls1), len(ls2), v)
         return v
 
     def guess(table, ls1, ls2, env1, env2):
@@ -306,7 +302,7 @@ def diff_list(table, ls1, ls2, env1, env2, depth, move):
                 return (append(ins_node(ls2[0]), m3), cost3)
 
     # cache look up
-    cached = tableLookup(table, len(ls1), len(ls2))
+    cached = table_lookup(table, len(ls1), len(ls2))
     if (cached <> None):
         return cached
 

@@ -133,7 +133,7 @@ def dist1(table, s1, s2):
         return v
 
     cached = table_lookup(table, len(s1), len(s2))
-    if (cached <> None):
+    if cached is not None:
         return cached
 
     if s1 == '':
@@ -176,12 +176,12 @@ def diff_node(node1, node2, env1, env2, depth, move):
                 return (changes, cost)
 
     if isinstance(node1, list) and not isinstance(node2, list):
-        return diff_node(node1, [node2], env1, env2, depth, move)
+        node2 = [node2]
 
     if not isinstance(node1, list) and isinstance(node2, list):
-        return diff_node([node1], node2, env1, env2, depth, move)
+        node1=[node1]
 
-    if (isinstance(node1, list) and isinstance(node2, list)):
+    if isinstance(node1, list) and isinstance(node2, list):
         node1 = serialize_if(node1)
         node2 = serialize_if(node2)
         table = create_table(len(node1), len(node2))
@@ -293,7 +293,7 @@ def diff_list(table, ls1, ls2, env1, env2, depth, move):
 
     # cache look up
     cached = table_lookup(table, len(ls1), len(ls2))
-    if (cached <> None):
+    if cached is not None:
         return cached
 
     if (ls1 == [] and ls2 == []):

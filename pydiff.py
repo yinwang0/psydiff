@@ -65,25 +65,6 @@ def ins_node(node):
     return loner(Change(None, node, node_size(node)))
 
 
-
-# general cache table for acceleration
-class Cache:
-    def __init__(self):
-        self.table = {}
-    def __repr__(self):
-        return "Cache:" + str(self.table)
-    def __len__(self):
-        return len(self.table)
-    def put(self, key, value):
-        self.table[key] = value
-    def get(self, key):
-        if self.table.has_key(key):
-            return self.table[key]
-        else:
-            return None
-
-
-
 # 2-D array table for memoization of dynamic programming
 def create_table(x, y):
     table = []
@@ -106,20 +87,17 @@ def table_put(t, x, y, v):
 #-------------------------------------------------------------
 
 ### diff cache for AST nodes
-str_dist_cache = Cache()
-def clear_str_dist_cache():
-    global str_dist_cache
-    str_dist_cache = Cache()
+str_dist_cache = {}
 
 
 ### string distance function
 def str_dist(s1, s2):
     cached = str_dist_cache.get((s1, s2))
-    if cached <> None:
+    if cached is not None:
         return cached
 
     if len(s1) > 100 or len(s2) > 100:
-        if s1 <> s2:
+        if s1 != s2:
             return 2.0
         else:
             return 0
@@ -128,7 +106,7 @@ def str_dist(s1, s2):
     d = dist1(table, s1, s2)
     ret = div(2*d, len(s1) + len(s2))
 
-    str_dist_cache.put((s1, s2), ret)
+    str_dist_cache[(s1, s2)]=ret
     return ret
 
 
@@ -554,7 +532,7 @@ def diff(file1, file2, move=True):
 
 
 def cleanup():
-    clear_str_dist_cache()
+    str_dist_cache.clear()
     clear_uid()
 
     global allNodes1, allNodes2

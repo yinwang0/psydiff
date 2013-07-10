@@ -15,10 +15,25 @@ from utils import *
 
 
 #------------------------------- types ------------------------------
-# global storage of running stats
 class Stat:
+    "storage for stat counters"
     def __init__(self):
-        pass
+        self.reset()
+
+    def reset(self):
+        self.diff_count = 0
+        self.move_count = 0
+        self.move_savings = 0
+
+    def add_moves(self, nterms):
+        self.move_savings += nterms
+        self.move_count +=1
+        if self.move_count % 1000 == 0:
+            dot()
+    def add_diff(self):
+        self.diff_count += 1
+        if stat.diff_count % 1000 == 0:
+            dot()
 
 stat = Stat()
 
@@ -118,7 +133,7 @@ def dist1(table, s1, s2):
         return v
 
     cached = table_lookup(table, len(s1), len(s2))
-    if (cached <> None):
+    if cached is not None:
         return cached
 
     if s1 == '':
@@ -145,7 +160,6 @@ def dist1(table, s1, s2):
 #                        diff of nodes
 #-------------------------------------------------------------
 
-stat.diff_count = 0
 def diff_node(node1, node2, env1, env2, depth, move):
 
     # try substructural diff
@@ -162,21 +176,19 @@ def diff_node(node1, node2, env1, env2, depth, move):
                 return (changes, cost)
 
     if isinstance(node1, list) and not isinstance(node2, list):
-        return diff_node(node1, [node2], env1, env2, depth, move)
+        node2 = [node2]
 
     if not isinstance(node1, list) and isinstance(node2, list):
-        return diff_node([node1], node2, env1, env2, depth, move)
+        node1=[node1]
 
-    if (isinstance(node1, list) and isinstance(node2, list)):
+    if isinstance(node1, list) and isinstance(node2, list):
         node1 = serialize_if(node1)
         node2 = serialize_if(node2)
         table = create_table(len(node1), len(node2))
         return diff_list(table, node1, node2, env1, env2, 0, move)
 
     # statistics
-    stat.diff_count += 1
-    if stat.diff_count % 1000 == 0:
-        dot()
+    stat.add_diff()
 
     if node1 == node2:
         return (mod_node(node1, node2, 0), 0)
@@ -281,7 +293,7 @@ def diff_list(table, ls1, ls2, env1, env2, depth, move):
 
     # cache look up
     cached = table_lookup(table, len(ls1), len(ls2))
-    if (cached <> None):
+    if cached is not None:
         return cached
 
     if (ls1 == [] and ls2 == []):
@@ -367,8 +379,6 @@ def move_candidate(node):
     return (is_def(node) or node_size(node) >= MOVE_SIZE)
 
 
-stat.move_count = 0
-stat.move_savings = 0
 def get_moves(ds, round=0):
 
     dels = pylist(filterlist(lambda p: (p.cur == None and
@@ -410,12 +420,7 @@ def get_moves(ds, round=0):
                     is_def(node1) and is_def(node2)):
                     newChanges = append(mod_node(node1, node2, cost),
                                         newChanges)
-
-                stat.move_savings += nterms
-                stat.move_count +=1
-                if stat.move_count % 1000 == 0:
-                    dot()
-
+                stat.add_moves(nterms)
                 break
 
     print("\n\t%d matched pairs found with %d new changes."
@@ -539,9 +544,7 @@ def cleanup():
     allNodes1 = set()
     allNodes2 = set()
 
-    stat.diff_count = 0
-    stat.move_count = 0
-    stat.move_savings = 0
+    stat.reset()
 
 
 

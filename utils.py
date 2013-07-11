@@ -100,7 +100,7 @@ def can_move(node1, node2, c):
 
 # whether the node is considered deleted or inserted because
 # the other party matches a substructure of it.
-def nodeFramed(node, changes):
+def node_framed(node, changes):
     for c in changes:
         if (c.is_frame and (node == c.orig or node == c.cur)):
             return True

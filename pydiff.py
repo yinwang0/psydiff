@@ -70,13 +70,13 @@ class Change:
 # * deletion
 # * insertion
 def mod_node(node1, node2, cost):
-    return [Change(node1, node2, cost)]
+    return Change(node1, node2, cost)
 
 def del_node(node):
-    return [Change(node, None, node_size(node))]
+    return Change(node, None, node_size(node))
 
 def ins_node(node):
-    return [Change(None, node, node_size(node))]
+    return Change(None, node, node_size(node))
 
 
 # 2-D array table for memoization of dynamic programming
@@ -190,21 +190,21 @@ def diff_node(node1, node2, depth, move):
     stat.add_diff()
 
     if node1 == node2:
-        return (mod_node(node1, node2, 0), 0)
+        return ([mod_node(node1, node2, 0)], 0)
 
     if isinstance(node1, Num) and isinstance(node2, Num):
         if node1.n == node2.n:
-            return (mod_node(node1, node2, 0), 0)
+            return ([mod_node(node1, node2, 0)], 0)
         else:
-            return (mod_node(node1, node2, 1), 1)
+            return ([mod_node(node1, node2, 1)], 1)
 
     if isinstance(node1, Str) and isinstance(node2, Str):
         cost = str_dist(node1.s, node2.s)
-        return (mod_node(node1, node2, cost), cost)
+        return ([mod_node(node1, node2, cost)], cost)
 
     if (isinstance(node1, Name) and isinstance(node2, Name)):
         cost = str_dist(node1.id, node2.id)
-        return (mod_node(node1, node2, cost), cost)
+        return ([mod_node(node1, node2, cost)], cost)
 
     if (isinstance(node1, Attribute) and isinstance(node2, Name) or
         isinstance(node1, Name) and isinstance(node2, Attribute) or
@@ -213,7 +213,7 @@ def diff_node(node1, node2, depth, move):
         s2 = attr_to_str(node2)
         if s1 <> None and s2 <> None:
             cost = str_dist(s1, s2)
-            return (mod_node(node1, node2, cost), cost)
+            return ([mod_node(node1, node2, cost)], cost)
         # else fall through for things like f(x).y vs x.y
 
     if isinstance(node1, Module) and isinstance(node2, Module):
@@ -236,10 +236,10 @@ def diff_node(node1, node2, depth, move):
 
     if (type(node1) == type(node2) and
              is_empty_container(node1) and is_empty_container(node2)):
-        return (mod_node(node1, node2, 0), 0)
+        return ([mod_node(node1, node2, 0)], 0)
 
     # all unmatched types and unequal values
-    return trysub((del_node(node1) + ins_node(node2),
+    return trysub(([del_node(node1), ins_node(node2)],
                    node_size(node1) + node_size(node2)))
 
 
@@ -261,9 +261,9 @@ def diff_list(table, ls1, ls2, depth, move):
 
         if ((is_frame(ls1[0]) and
              is_frame(ls2[0]) and
-             not nodeFramed(ls1[0], m0) and
-             not nodeFramed(ls2[0], m0))):
-            frame_change = mod_node(ls1[0], ls2[0], c0)
+             not node_framed(ls1[0], m0) and
+             not node_framed(ls2[0], m0))):
+            frame_change = [mod_node(ls1[0], ls2[0], c0)]
         else:
             frame_change = []
 
@@ -281,9 +281,9 @@ def diff_list(table, ls1, ls2, depth, move):
                 cost1 <= cost2 and cost1 <= cost3):
                 return (frame_change + m0 + m1, cost1)
             elif (cost2 <= cost3):
-                return (del_node(ls1[0]) + m2, cost2)
+                return ([del_node(ls1[0])] + m2, cost2)
             else:
-                return (ins_node(ls2[0]) + m3, cost3)
+                return ([ins_node(ls2[0])] + m3, cost3)
 
     # cache look up
     cached = table_lookup(table, len(ls1), len(ls2))
@@ -299,13 +299,13 @@ def diff_list(table, ls1, ls2, depth, move):
     elif ls1 == []:
         d = []
         for n in ls2:
-            d = ins_node(n) + d
+            d = [ins_node(n)] + d
         return memo((d, node_size(ls2)))
 
     else: # ls2 == []:
         d = []
         for n in ls1:
-            d = del_node(n) + d
+            d = [del_node(n)] + d
         return memo((d, node_size(ls1)))
 
 
@@ -341,7 +341,7 @@ def diff_subnode(node1, node2, depth, move):
                 (m0, c0) = diff_node(node1, f, depth+1, move)
                 if can_move(node1, f, c0):
                     if not isinstance(f, list):
-                        m1 = mod_node(node1, f, c0)
+                        m1 = [mod_node(node1, f, c0)]
                     else:
                         m1 = []
                     framecost = node_size(node2) - node_size(node1)
@@ -354,7 +354,7 @@ def diff_subnode(node1, node2, depth, move):
                 if can_move(f, node2, c0):
                     framecost = node_size(node1) - node_size(node2)
                     if not isinstance(f, list):
-                        m1 = mod_node(f, node2, c0)
+                        m1 = [mod_node(f, node2, c0)]
                     else:
                         m1 = []
                     m2 = [Change(node1, None, framecost, True)]
@@ -384,11 +384,9 @@ def get_moves(ds, round=0):
                              not p.is_frame),
                   ds)
 
-    # print "dels=", dels
-    # print "adds=", adds
-
     matched = []
-    newChanges, total = [], 0
+    new_changes = []
+    total = 0
 
     print("\n[move #%d] %d * %d = %d pairs of nodes to consider ..."
           % (round, len(dels), len(adds), len(dels) * len(adds)))
@@ -400,29 +398,26 @@ def get_moves(ds, round=0):
             nterms = node_size(node1) + node_size(node2)
 
             if (can_move(node1, node2, cost) or
-                nodeFramed(node1, changes) or
-                nodeFramed(node2, changes)):
+                node_framed(node1, changes) or
+                node_framed(node2, changes)):
 
                 matched.append(d0)
                 matched.append(a0)
                 adds.remove(a0)
-                newChanges = changes + newChanges
+                new_changes.extend(changes)
                 total += cost
 
-                if (not nodeFramed(node1, changes) and
-                    not nodeFramed(node2, changes) and
+                if (not node_framed(node1, changes) and
+                    not node_framed(node2, changes) and
                     is_def(node1) and is_def(node2)):
-                    newChanges = mod_node(node1, node2, cost) + newChanges
+                    new_changes.append(mod_node(node1, node2, cost))
                 stat.add_moves(nterms)
                 break
 
     print("\n\t%d matched pairs found with %d new changes."
-          % (len(matched), len(newChanges)))
+          % (len(matched), len(new_changes)))
 
-    # print "matches=", matched
-    # print "newChanges=", newChanges
-
-    return (matched, newChanges, total)
+    return (matched, new_changes, total)
 
 
 
@@ -432,15 +427,13 @@ def get_moves(ds, round=0):
 def find_all_moves(res):
     (changes, cost) = res
     matched = None
-    moveround = 1
+    move_round = 1
 
-    while moveround <= MOVE_ROUND and matched <> []:
-        (matched, newChanges, c) = get_moves(changes, moveround)
-        moveround += 1
-        # print "matched:", matched
-        # print "changes:", changes
+    while move_round <= MOVE_ROUND and matched <> []:
+        (matched, new_changes, c) = get_moves(changes, move_round)
+        move_round += 1
         changes = filter(lambda c: c not in matched, changes)
-        changes = newChanges + changes
+        changes.extend(new_changes)
         savings = sum(map(lambda p: node_size(p.orig) + node_size(p.cur), matched))
         cost = cost + c - savings
     return (changes, cost)
@@ -448,12 +441,8 @@ def find_all_moves(res):
 
 
 
-
-
-
-
 #-------------------------------------------------------------
-#                     main HTML based command
+#                     main diff command
 #-------------------------------------------------------------
 
 def diff(file1, file2, move=True):

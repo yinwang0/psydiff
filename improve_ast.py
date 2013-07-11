@@ -450,14 +450,14 @@ ops_map = {
     # compare:
     Eq     : '==',
     NotEq  : '<>',
-    Lt     : '<',
     LtE    : '<=',
-    Gt     : '>',
+    Lt     : '<',
     GtE    : '>=',
-    In     : 'in',
+    Gt     : '>',
     NotIn  : 'not in',
-    Is     : 'is',
+    In     : 'in',
     IsNot  : 'is not',
+    Is     : 'is',
 
     # BoolOp
     Or  : 'or',

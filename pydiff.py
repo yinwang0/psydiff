@@ -43,9 +43,9 @@ class Change:
     def __init__(self, orig, cur, cost, is_frame=False):
         self.orig = orig
         self.cur = cur
-        if orig == None:
+        if orig is None:
             self.cost = node_size(cur)
-        elif cur == None:
+        elif cur is None:
             self.cost = node_size(orig)
         elif cost == 'all':
             self.cost = node_size(orig) + node_size(cur)
@@ -211,7 +211,7 @@ def diff_node(node1, node2, depth, move):
         isinstance(node1, Attribute) and isinstance(node2, Attribute)):
         s1 = attr_to_str(node1)
         s2 = attr_to_str(node2)
-        if s1 <> None and s2 <> None:
+        if s1 is not None and s2 is not None:
             cost = str_dist(s1, s2)
             return ([mod_node(node1, node2, cost)], cost)
         # else fall through for things like f(x).y vs x.y
@@ -219,7 +219,7 @@ def diff_node(node1, node2, depth, move):
     if isinstance(node1, Module) and isinstance(node2, Module):
         return diff_node(node1.body, node2.body, depth, move)
 
-    # other AST nodes
+    # same type of other AST nodes
     if (isinstance(node1, AST) and isinstance(node2, AST) and
         type(node1) == type(node2)):
 
@@ -293,7 +293,7 @@ def diff_list(table, ls1, ls2, depth, move):
     if (ls1 == [] and ls2 == []):
         return memo(([], 0))
 
-    elif (ls1 <> [] and ls2 <> []):
+    elif (ls1 != [] and ls2 != []):
         return memo(guess(table, ls1, ls2))
 
     elif ls1 == []:
@@ -373,26 +373,27 @@ def move_candidate(node):
     return (is_def(node) or node_size(node) >= MOVE_SIZE)
 
 
-def get_moves(ds, round=0):
+def get_moves(changes, round=0):
 
-    dels = filter(lambda p: (p.cur == None and
-                             move_candidate(p.orig) and
-                             not p.is_frame),
-                  ds)
-    adds = filter(lambda p: (p.orig == None and
-                             move_candidate(p.cur) and
-                             not p.is_frame),
-                  ds)
+    deletions = filter(lambda p: (p.cur is None and
+                                  move_candidate(p.orig) and
+                                  not p.is_frame),
+                       changes)
+
+    insertions = filter(lambda p: (p.orig is None and
+                                   move_candidate(p.cur) and
+                                   not p.is_frame),
+                        changes)
 
     matched = []
     new_changes = []
     total = 0
 
     print("\n[move #%d] %d * %d = %d pairs of nodes to consider ..."
-          % (round, len(dels), len(adds), len(dels) * len(adds)))
+          % (round, len(deletions), len(insertions), len(deletions) * len(insertions)))
 
-    for d0 in dels:
-        for a0 in adds:
+    for d0 in deletions:
+        for a0 in insertions:
             (node1, node2) = (d0.orig, a0.cur)
             (changes, cost) = diff_node(node1, node2, 0, True)
             nterms = node_size(node1) + node_size(node2)
@@ -403,7 +404,7 @@ def get_moves(ds, round=0):
 
                 matched.append(d0)
                 matched.append(a0)
-                adds.remove(a0)
+                insertions.remove(a0)
                 new_changes.extend(changes)
                 total += cost
 
@@ -429,7 +430,7 @@ def find_all_moves(res):
     matched = None
     move_round = 1
 
-    while move_round <= MOVE_ROUND and matched <> []:
+    while move_round <= MOVE_ROUND and matched != []:
         (matched, new_changes, c) = get_moves(changes, move_round)
         move_round += 1
         changes = filter(lambda c: c not in matched, changes)
@@ -542,7 +543,7 @@ last_checkpoint = None
 def checkpoint(init=None):
     import time
     global last_checkpoint
-    if init <> None:
+    if init is not None:
         last_checkpoint = init
         return None
     else:

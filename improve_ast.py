@@ -422,7 +422,7 @@ def convert_ops(ops, s, start, idxmap):
     syms = []
     for op in ops:
         if ops_map.has_key(type(op)):
-            syms += ops_map[type(op)]
+            syms.append(ops_map[type(op)])
         else:
             print("[WARNING] operator %s is missing from ops_map, " \
                   "please report the bug on GitHub" % op)

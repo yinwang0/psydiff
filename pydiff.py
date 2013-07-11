@@ -232,7 +232,8 @@ def diff_node(node1, node2, depth, move):
             changes = m + changes
             cost += c
 
-        return trysub((changes, cost))
+        # final all moves local to the node
+        return find_moves((changes, cost))
 
     if (type(node1) == type(node2) and
              is_empty_container(node1) and is_empty_container(node2)):
@@ -365,7 +366,6 @@ def diff_subnode(node1, node2, depth, move):
 
 
 
-
 ##########################################################################
 ##                          move detection
 ##########################################################################
@@ -373,7 +373,7 @@ def move_candidate(node):
     return (is_def(node) or node_size(node) >= MOVE_SIZE)
 
 
-def get_moves(changes, round=0):
+def match_up(changes, round=0, final=False):
 
     deletions = filter(lambda p: (p.cur is None and
                                   move_candidate(p.orig) and
@@ -389,8 +389,9 @@ def get_moves(changes, round=0):
     new_changes = []
     total = 0
 
-    print("\n[move #%d] %d * %d = %d pairs of nodes to consider ..."
-          % (round, len(deletions), len(insertions), len(deletions) * len(insertions)))
+    if final:
+        print("\n[final move #%d] %d * %d = %d pairs of nodes to consider ..."
+              % (round, len(deletions), len(insertions), len(deletions) * len(insertions)))
 
     for d0 in deletions:
         for a0 in insertions:
@@ -415,8 +416,9 @@ def get_moves(changes, round=0):
                 stat.add_moves(nterms)
                 break
 
-    print("\n\t%d matched pairs found with %d new changes."
-          % (len(matched), len(new_changes)))
+    if final:
+        print("\n\t%d matched pairs found with %d new changes."
+              % (len(matched), len(new_changes)))
 
     return (matched, new_changes, total)
 
@@ -425,13 +427,13 @@ def get_moves(changes, round=0):
 # Get moves repeatedly because new moves may introduce new
 # deletions and insertions.
 
-def find_all_moves(res):
+def find_moves(res, final=False):
     (changes, cost) = res
     matched = None
     move_round = 1
 
     while move_round <= MOVE_ROUND and matched != []:
-        (matched, new_changes, c) = get_moves(changes, move_round)
+        (matched, new_changes, c) = match_up(changes, move_round, final)
         move_round += 1
         changes = filter(lambda c: c not in matched, changes)
         changes.extend(new_changes)
@@ -483,7 +485,7 @@ def diff(file1, file2, move=True):
            % (stat.diff_count, sec_to_min(checkpoint())))
 
     if move:
-        (changes, cost) = find_all_moves((changes, cost))
+        (changes, cost) = find_moves((changes, cost), True)
 
         print("\nfinished in %s." % sec_to_min(checkpoint()))
 
@@ -577,7 +579,7 @@ def print_diff(file1, file2):
 def diff_file(file1, file2):
     node1 = parse_file(file1)
     node2 = parse_file(file2)
-    return find_all_moves(diff_node(node1, node2, 0, False))
+    return find_moves(diff_node(node1, node2, 0, False))
 
 
 ## if run under command line

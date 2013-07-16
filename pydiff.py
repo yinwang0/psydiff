@@ -393,13 +393,38 @@ def match_up(changes, round=0, final=False):
         print("\n[final move #%d] %d * %d = %d pairs of nodes to consider ..."
               % (round, len(deletions), len(insertions), len(deletions) * len(insertions)))
 
+
+    # find definition with the same names first
+    for d0 in deletions:
+        for a0 in insertions:
+            (node1, node2) = (d0.orig, a0.cur)
+            if same_def(node1, node2):
+                matched.append(d0)
+                matched.append(a0)
+                deletions.remove(d0)
+                insertions.remove(a0)
+
+                (changes, cost) = diff_node(node1, node2, 0, True)
+                nterms = node_size(node1) + node_size(node2)
+                new_changes.extend(changes)
+                total += cost
+
+                if (not node_framed(node1, changes) and
+                    not node_framed(node2, changes) and
+                    is_def(node1) and is_def(node2)):
+                    new_changes.append(mod_node(node1, node2, cost))
+                stat.add_moves(nterms)
+                break
+
+
+    # match the rest of the deltas
     for d0 in deletions:
         for a0 in insertions:
             (node1, node2) = (d0.orig, a0.cur)
             (changes, cost) = diff_node(node1, node2, 0, True)
             nterms = node_size(node1) + node_size(node2)
 
-            if (can_move(node1, node2, cost) or
+            if (cost <= (node_size(node1) + node_size(node2)) * MOVE_RATIO or
                 node_framed(node1, changes) or
                 node_framed(node2, changes)):
 

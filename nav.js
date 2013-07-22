@@ -182,7 +182,7 @@ function clearHighlight() {
  * Highlight the link, target nodes and their lines,
  * then start animation to move the other window to match.
  */
-function highlight(me, linkId, targetId, linkLineId, targetLineId, doMatch)
+function highlight(me, linkId, targetId)
 {
     if (me.id === 'left') {
         matchId1 = linkId;
@@ -196,12 +196,6 @@ function highlight(me, linkId, targetId, linkLineId, targetLineId, doMatch)
 
     putHighlight(linkId, nodeHLColor);
     putHighlight(targetId, nodeHLColor);
-    putHighlight(linkLineId, lineHLColor);
-    putHighlight(targetLineId, lineHLColor);
-
-    if (doMatch) {
-        matchWindow(linkId, targetId, nSteps);
-    }
 }
 
 
@@ -240,7 +234,7 @@ window.onload =
                     var lid = t.id
                     var tid = t.getAttribute('tid')
                     var container = getContainer(t)
-                    highlight(container, lid, tid, 'ignore', 'ignore', false)
+                    highlight(container, lid, tid)
                 }
             tags[i].onclick =
                 function (e) {
@@ -248,7 +242,8 @@ window.onload =
                     var lid = t.id
                     var tid = t.getAttribute('tid')
                     var container = getContainer(t)
-                    highlight(container, lid, tid, 'ignore', 'ignore', true)
+                    highlight(container, lid, tid)
+                    matchWindow(lid, tid, nSteps)
                 }
         }
 

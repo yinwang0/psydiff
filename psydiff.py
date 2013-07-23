@@ -608,7 +608,7 @@ def diff_file(file1, file2):
 
 
 ## if run under command line
-## pydiff.py file1.py file2.py
+## psydiff.py file1.py file2.py
 if len(sys.argv) == 3:
     file1 = sys.argv[1]
     file2 = sys.argv[2]

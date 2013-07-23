@@ -154,6 +154,22 @@ function matchWindow(linkId, targetId, n)
 }
 
 
+function showArrow(linkId, targetId)
+{
+    var link = $(linkId);
+    var target = $(targetId);
+    var linkContainer = getContainer(link);
+    var targetContainer = getContainer(target);
+
+    var linkPos = elementPosition(linkId).y - linkContainer.scrollTop;
+    var targetPos = elementPosition(targetId).y - targetContainer.scrollTop;
+    var distY = targetPos - linkPos;
+    var distX = linkContainer.scrollLeft - targetContainer.scrollLeft;
+
+
+    log("targetPos = " + targetPos);
+}
+
 
 ////////////////////////// highlighting /////////////////////////////
 
@@ -235,6 +251,7 @@ window.onload =
                     var tid = t.getAttribute('tid')
                     var container = getContainer(t)
                     highlight(container, lid, tid)
+                    showArrow(lid, tid)
                 }
             tags[i].onclick =
                 function (e) {

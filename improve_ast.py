@@ -112,8 +112,13 @@ def find_node_end(node, s, idxmap):
             q = "'"
             i += 1
         else:
-            print "illegal:", i, s[i]
-        the_end = end_seq(s, q, i)
+#            print "illegal:", i, s[i]
+            q = ''
+
+        if q != '':
+            the_end = end_seq(s, q, i)
+        else:
+            the_end = -1
 
     elif isinstance(node, Name):
         the_end = find_node_start(node, s, idxmap) + len(node.id)
@@ -301,8 +306,9 @@ def add_missing_names(node, s, idxmap):
         else:
             start = find_node_start(node, s, idxmap)
         ops = convert_ops([node.op], s, start, idxmap)
-        node.op_node = ops[0]
-        node._fields += ('op_node',)
+        if ops != []:
+            node.op_node = ops[0]
+            node._fields += ('op_node',)
 
     elif isinstance(node, Import):
         name_nodes = []
@@ -464,11 +470,17 @@ ops_map = {
     And : 'and',
     Not : 'not',
 
+    BitOr : '|',
+    BitAnd : '&',
+    BitXor : '^',
+    
+
     # BinOp
     Add  : '+',
     Sub  : '-',
     Mult : '*',
     Div  : '/',
+    FloorDiv : '//',
     Mod  : '%',
     RShift : '>>',
     LShift : '<<',

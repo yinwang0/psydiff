@@ -162,7 +162,8 @@ def dist1(table, s1, s2):
 def diff_node(node1, node2, depth, move):
 
     # try substructural diff
-    def trysub((changes, cost)):
+    def trysub(cc):
+        (changes, cost) = cc
         if not move:
             return (changes, cost)
         elif can_move(node1, node2, cost):
@@ -373,7 +374,7 @@ def move_candidate(node):
     return (is_def(node) or node_size(node) >= MOVE_SIZE)
 
 
-def match_up(changes, round=0, final=False):
+def match_up(changes, round=0):
 
     deletions = filter(lambda p: (p.cur is None and
                                   move_candidate(p.orig) and
@@ -388,11 +389,6 @@ def match_up(changes, round=0, final=False):
     matched = []
     new_changes = []
     total = 0
-
-    if final:
-        print("\n[final move #%d] %d * %d = %d pairs of nodes to consider ..."
-              % (round, len(deletions), len(insertions), len(deletions) * len(insertions)))
-
 
     # find definition with the same names first
     for d0 in deletions:
@@ -441,10 +437,6 @@ def match_up(changes, round=0, final=False):
                 stat.add_moves(nterms)
                 break
 
-    if final:
-        print("\n\t%d matched pairs found with %d new changes."
-              % (len(matched), len(new_changes)))
-
     return (matched, new_changes, total)
 
 
@@ -452,13 +444,13 @@ def match_up(changes, round=0, final=False):
 # Get moves repeatedly because new moves may introduce new
 # deletions and insertions.
 
-def find_moves(res, final=False):
+def find_moves(res):
     (changes, cost) = res
     matched = None
     move_round = 1
 
     while move_round <= MOVE_ROUND and matched != []:
-        (matched, new_changes, c) = match_up(changes, move_round, final)
+        (matched, new_changes, c) = match_up(changes, move_round)
         move_round += 1
         changes = filter(lambda c: c not in matched, changes)
         changes.extend(new_changes)
@@ -475,7 +467,9 @@ def find_moves(res, final=False):
 
 def diff(file1, file2, move=True):
 
-    print("\nJob started at %s, %s\n" % (time.ctime(), time.tzname[0]))
+    print("File 1: %s" % file1)
+    print("File 2: %s" % file2)
+    print("Start time: %s, %s" % (time.ctime(), time.tzname[0]))
     start_time = time.time()
     checkpoint(start_time)
 
@@ -500,20 +494,16 @@ def diff(file1, file2, move=True):
     improve_ast(node2, lines2, file2, 'right')
 
 
-    print("[parse] finished in %s. Now start to diff." % sec_to_min(checkpoint()))
+    print("Parse finished in %s. Now start to diff." % sec_to_min(checkpoint()))
 
     # get the changes
 
     (changes, cost) = diff_node(node1, node2, 0, False)
 
-    print ("\n[diff] processed %d nodes in %s."
-           % (stat.diff_count, sec_to_min(checkpoint())))
+    print("\n[diff] processed %d nodes in %s."
+          % (stat.diff_count, sec_to_min(checkpoint())))
 
-    if move:
-        (changes, cost) = find_moves((changes, cost), True)
-
-        print("\nfinished in %s." % sec_to_min(checkpoint()))
-
+    print("\nfinished in %s." % sec_to_min(checkpoint()))
 
 
     #---------------------- print final stats ---------------------
@@ -531,7 +521,7 @@ def diff(file1, file2, move=True):
                % (div(cost, total) * 100))                             + "\n"
     report += ("-----------------------------------------------------")   + "\n"
 
-    print report
+    print(report)
 
 
     #---------------------- generation HTML ---------------------
@@ -588,15 +578,15 @@ def checkpoint(init=None):
 ## print the diffs as text
 def print_diff(file1, file2):
     (m, c) = diff_file(file1, file2)
-    print "----------", file1, "<<<", c, ">>>", file2, "-----------"
+    print("----------", file1, "<<<", c, ">>>", file2, "-----------")
 
     ms = m
     ms = sorted(ms, key=lambda d: node_start(d.orig))
-    print "\n-------------------- changes(", len(ms), ")---------------------- "
+    print("\n-------------------- changes(", len(ms), ")---------------------- ")
     for m0 in ms:
-        print m0
+        print(m0)
 
-    print "\n-------------------  end  ----------------------- "
+    print("\n-------------------  end  ----------------------- ")
 
 
 
@@ -604,7 +594,7 @@ def print_diff(file1, file2):
 def diff_file(file1, file2):
     node1 = parse_file(file1)
     node2 = parse_file(file2)
-    return find_moves(diff_node(node1, node2, 0, False))
+    return diff_node(node1, node2, 0)
 
 
 ## if run under command line

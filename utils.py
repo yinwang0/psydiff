@@ -14,7 +14,7 @@ from parameters import *
 def node_fields(node):
     ret = []
     for field in node._fields:
-        if field <> 'ctx' and hasattr(node, field):
+        if field != 'ctx' and hasattr(node, field):
             ret.append(getattr(node, field))
     return ret
 
@@ -87,7 +87,7 @@ def same_def(node1, node2):
 
 def different_def(node1, node2):
     if is_def(node1) and is_def(node2):
-        return node1.name <> node2.name
+        return node1.name != node2.name
     return False
 
 
@@ -114,7 +114,7 @@ def node_framed(node, changes):
 def serialize_if(node):
     if isinstance(node, If):
         if not hasattr(node, 'node_end'):
-            print "has no end:", node
+            print("has no end:", node)
 
         newif = If(node.test, node.body, [])
         newif.lineno = node.lineno
@@ -145,7 +145,7 @@ def node_name(node):
 def attr_to_str(node):
     if isinstance(node, Attribute):
         vName = attr_to_str(node.value)
-        if vName <> None:
+        if vName != None:
             return vName + "." + node.attr
         else:
             return None
@@ -186,7 +186,7 @@ def node_size(node, test=False):
         ret = 0
 
     if test:
-        print "node:", node, "size=", ret
+        print("node:", node, "size=", ret)
 
     if isinstance(node, AST):
         node.node_size = ret
@@ -200,7 +200,7 @@ def node_size(node, test=False):
 #-------------------------------------------------------------
 def debug(*args):
     if DEBUG:
-        print args
+        print(args)
 
 
 def dot():

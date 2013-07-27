@@ -59,7 +59,7 @@ def find_node_start(node, s, idxmap):
 
     elif isinstance(node, BinOp):
         leftstart = find_node_start(node.left, s, idxmap)
-        if leftstart <> None:
+        if leftstart != None:
             ret = leftstart
         else:
             ret = map_idx(idxmap, node.lineno, node.col_offset)
@@ -69,7 +69,7 @@ def find_node_start(node, s, idxmap):
             ret = map_idx(idxmap, node.lineno, node.col_offset)
         else:                           # special case for """ strings
             i = map_idx(idxmap, node.lineno, node.col_offset)
-            while i > 0 and i+2 < len(s) and s[i:i+3] <> '"""':
+            while i > 0 and i+2 < len(s) and s[i:i+3] != '"""':
                 i -= 1
             ret = i
     else:
@@ -78,7 +78,7 @@ def find_node_start(node, s, idxmap):
     if ret == None and hasattr(node, 'lineno'):
         raise TypeError("got None for node that has lineno", node)
 
-    if isinstance(node, AST) and ret <> None:
+    if isinstance(node, AST) and ret != None:
         node.node_start = ret
 
     return ret
@@ -142,7 +142,7 @@ def find_node_end(node, s, idxmap):
         the_end = find_node_end(node.value, s, idxmap)
 
     elif isinstance(node, Return):
-        if node.value <> None:
+        if node.value != None:
             the_end = find_node_end(node.value, s, idxmap)
         else:
             the_end = find_node_start(node, s, idxmap) + len('return')
@@ -154,7 +154,7 @@ def find_node_end(node, s, idxmap):
           isinstance(node, While) or
           isinstance(node, If) or
           isinstance(node, IfExp)):
-        if node.orelse <> []:
+        if node.orelse != []:
             the_end = find_node_end(node.orelse, s, idxmap)
         else:
             the_end = find_node_end(node.body, s, idxmap)
@@ -191,9 +191,9 @@ def find_node_end(node, s, idxmap):
         the_end = match_paren(s, '{', '}', find_node_start(node, s, idxmap));
 
     elif isinstance(node, TryExcept):
-        if node.orelse <> []:
+        if node.orelse != []:
             the_end = find_node_end(node.orelse, s, idxmap)
-        elif node.handlers <> []:
+        elif node.handlers != []:
             the_end = find_node_end(node.handlers, s, idxmap)
         else:
             the_end = find_node_end(node.body, s, idxmap)
@@ -222,7 +222,7 @@ def find_node_end(node, s, idxmap):
     else:
         # print "[find_node_end] unrecognized node:", node, "type:", type(node)
         start = find_node_start(node, s, idxmap)
-        if start <> None:
+        if start != None:
             the_end = start + 3
         else:
             the_end = None
@@ -230,7 +230,7 @@ def find_node_end(node, s, idxmap):
     if the_end == None and hasattr(node, 'lineno'):
         raise TypeError("got None for node that has lineno", node)
 
-    if isinstance(node, AST) and the_end <> None:
+    if isinstance(node, AST) and the_end != None:
         node.node_end = the_end
 
     return the_end
@@ -265,7 +265,7 @@ def add_missing_names(node, s, idxmap):
         # node.keyword_node = str_to_name(s, keyword_start, idxmap)
         # node._fields += ('keyword_node',)
 
-        if node.args.vararg <> None:
+        if node.args.vararg != None:
             if len(node.args.args) > 0:
                 vstart = find_node_end(node.args.args[-1], s, idxmap)
             else:
@@ -276,7 +276,7 @@ def add_missing_names(node, s, idxmap):
             node.vararg_name = None
         node._fields += ('vararg_name',)
 
-        if node.args.kwarg <> None:
+        if node.args.kwarg != None:
             if len(node.args.args) > 0:
                 kstart = find_node_end(node.args.args[-1], s, idxmap)
             else:
@@ -315,7 +315,7 @@ def add_missing_names(node, s, idxmap):
         name_nodes = []
         next = find_node_start(node, s, idxmap) + len('import')
         name = str_to_name(s, next, idxmap)
-        while name <> None and next < len(s) and s[next] <> '\n':
+        while name != None and next < len(s) and s[next] != '\n':
             name_nodes.append(name)
             next = name.node_end
             name = str_to_name(s, next, idxmap)
@@ -350,7 +350,7 @@ def end_seq(s, pat, start):
 
 # find matching close paren from start
 def match_paren(s, open, close, start):
-    while start < len(s) and s[start] <> open:
+    while start < len(s) and s[start] != open:
         start += 1
     if start >= len(s):
         return len(s)
@@ -456,7 +456,7 @@ def convert_ops(ops, s, start, idxmap):
 ops_map = {
     # compare:
     Eq     : '==',
-    NotEq  : '<>',
+    NotEq  : '!=',
     LtE    : '<=',
     Lt     : '<',
     GtE    : '>=',
@@ -470,6 +470,7 @@ ops_map = {
     Or  : 'or',
     And : 'and',
     Not : 'not',
+    Invert : '~',
 
     # bit operators
     BitOr : '|',

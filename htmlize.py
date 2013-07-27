@@ -148,7 +148,7 @@ def change_tags(changes, side):
             start = node_start(key)
             end = node_end(key)
 
-            if c.orig <> None and c.cur <> None:
+            if c.orig != None and c.cur != None:
                 # <a ...> for change and move
                 tags.append(Tag(link_start(c, side), start))
                 tags.append(Tag("</a>", end, start))

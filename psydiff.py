@@ -483,16 +483,25 @@ def diff(file1, file2, move=True):
     f1 = open(file1, 'r');
     lines1 = f1.read()
     f1.close()
-    node1 = parse(lines1)
+    try:
+        node1 = parse(lines1)
+    except SyntaxError:
+        print('file %s cannot be parsed' % file1)
+        exit(-1)
+
     improve_ast(node1, lines1, file1, 'left')
 
     # get AST of file2
     f2 = open(file2, 'r');
     lines2 = f2.read()
     f2.close()
-    node2 = parse(lines2)
-    improve_ast(node2, lines2, file2, 'right')
+    try:
+        node2 = parse(lines2)
+    except SyntaxError:
+        print('file %s cannot be parsed' % file2)
+        exit(-1)
 
+    improve_ast(node2, lines2, file2, 'right')
 
     print("Parse finished in %s. Now start to diff." % sec_to_min(checkpoint()))
 

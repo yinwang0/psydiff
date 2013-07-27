@@ -47,15 +47,18 @@ def improve_ast(node, s, filename, side):
 #-------------------------------------------------------------
 
 def find_node_start(node, s, idxmap):
+    ret = None    # default value
 
     if hasattr(node, 'node_start'):
-        return node.node_start
+        ret = node.node_start
 
     elif isinstance(node, list):
-        ret = find_node_start(node[0], s, idxmap)
+        if node != []:
+            ret = find_node_start(node[0], s, idxmap)
 
     elif isinstance(node, Module):
-        ret = find_node_start(node.body[0], s, idxmap)
+        if node.body != []:
+            ret = find_node_start(node.body[0], s, idxmap)
 
     elif isinstance(node, BinOp):
         leftstart = find_node_start(node.left, s, idxmap)
@@ -73,7 +76,7 @@ def find_node_start(node, s, idxmap):
                 i -= 1
             ret = i
     else:
-        ret = None
+        return None
 
     if ret == None and hasattr(node, 'lineno'):
         raise TypeError("got None for node that has lineno", node)
@@ -88,16 +91,18 @@ def find_node_start(node, s, idxmap):
 
 def find_node_end(node, s, idxmap):
 
-    the_end = -1
+    the_end = None
 
     if hasattr(node, 'node_end'):
         return node.node_end
 
     elif isinstance(node, list):
-        the_end = find_node_end(node[-1], s, idxmap)
+        if node != []:
+            the_end = find_node_end(node[-1], s, idxmap)
 
     elif isinstance(node, Module):
-        the_end = find_node_end(node.body[-1], s, idxmap)
+        if node.body != []:
+            the_end = find_node_end(node.body[-1], s, idxmap)
 
     elif isinstance(node, Expr):
         the_end = find_node_end(node.value, s, idxmap)
@@ -136,7 +141,9 @@ def find_node_end(node, s, idxmap):
         the_end = find_node_end(node.body, s, idxmap)
 
     elif isinstance(node, Call):
-        the_end = match_paren(s, '(', ')', find_node_end(node.func, s, idxmap))
+        start = find_node_end(node.func, s, idxmap)
+        if start != None:
+            the_end = match_paren(s, '(', ')', start)
 
     elif isinstance(node, Yield):
         the_end = find_node_end(node.value, s, idxmap)
@@ -219,16 +226,10 @@ def find_node_end(node, s, idxmap):
     elif isinstance(node, ImportFrom):
         the_end = find_node_start(node, s, idxmap) + len('from')
 
-    else:
-        # print "[find_node_end] unrecognized node:", node, "type:", type(node)
+    else:   # can't determine node end, set to 3 chars after start
         start = find_node_start(node, s, idxmap)
         if start != None:
             the_end = start + 3
-        else:
-            the_end = None
-
-    if the_end == None and hasattr(node, 'lineno'):
-        raise TypeError("got None for node that has lineno", node)
 
     if isinstance(node, AST) and the_end != None:
         node.node_end = the_end
@@ -253,13 +254,15 @@ def add_missing_names(node, s, idxmap):
 
     elif isinstance(node, ClassDef):
         start = find_node_start(node, s, idxmap) + len('class')
-        node.name_node = str_to_name(s, start, idxmap)
-        node._fields += ('name_node',)
+        if start != None:
+            node.name_node = str_to_name(s, start, idxmap)
+            node._fields += ('name_node',)
 
     elif isinstance(node, FunctionDef):
         start = find_node_start(node, s, idxmap) + len('def')
-        node.name_node = str_to_name(s, start, idxmap)
-        node._fields += ('name_node',)
+        if start != None:
+            node.name_node = str_to_name(s, start, idxmap)
+            node._fields += ('name_node',)
 
         # keyword_start = find_node_start(node, s, idxmap)
         # node.keyword_node = str_to_name(s, keyword_start, idxmap)
@@ -270,8 +273,9 @@ def add_missing_names(node, s, idxmap):
                 vstart = find_node_end(node.args.args[-1], s, idxmap)
             else:
                 vstart = find_node_end(node.name_node, s, idxmap)
-            vname = str_to_name(s, vstart, idxmap)
-            node.vararg_name = vname
+            if vstart != None:
+                vname = str_to_name(s, vstart, idxmap)
+                node.vararg_name = vname
         else:
             node.vararg_name = None
         node._fields += ('vararg_name',)
@@ -281,22 +285,25 @@ def add_missing_names(node, s, idxmap):
                 kstart = find_node_end(node.args.args[-1], s, idxmap)
             else:
                 kstart = find_node_end(node.vararg_name, s, idxmap)
-            kname = str_to_name(s, kstart, idxmap)
-            node.kwarg_name = kname
+            if kstart:
+                kname = str_to_name(s, kstart, idxmap)
+                node.kwarg_name = kname
         else:
             node.kwarg_name = None
         node._fields += ('kwarg_name',)
 
     elif isinstance(node, Attribute):
         start = find_node_end(node.value, s, idxmap)
-        name = str_to_name(s, start, idxmap)
-        node.attr_name = name
-        node._fields = ('value', 'attr_name')  # remove attr for node size accuracy
+        if start != None:
+            name = str_to_name(s, start, idxmap)
+            node.attr_name = name
+            node._fields = ('value', 'attr_name')  # remove attr for node size accuracy
 
     elif isinstance(node, Compare):
-        node.opsName = convert_ops(node.ops, s,
-                                   find_node_start(node, s, idxmap), idxmap)
-        node._fields += ('opsName',)
+        start = find_node_start(node, s, idxmap)
+        if start != None:
+            node.opsName = convert_ops(node.ops, s, start, idxmap)
+            node._fields += ('opsName',)
 
     elif (isinstance(node, BoolOp) or
           isinstance(node, BinOp) or
@@ -306,7 +313,10 @@ def add_missing_names(node, s, idxmap):
             start = find_node_end(node.left, s, idxmap)
         else:
             start = find_node_start(node, s, idxmap)
-        ops = convert_ops([node.op], s, start, idxmap)
+        if start != None:
+            ops = convert_ops([node.op], s, start, idxmap)
+        else:
+            ops = []
         if ops != []:
             node.op_node = ops[0]
             node._fields += ('op_node',)
@@ -314,13 +324,14 @@ def add_missing_names(node, s, idxmap):
     elif isinstance(node, Import):
         name_nodes = []
         next = find_node_start(node, s, idxmap) + len('import')
-        name = str_to_name(s, next, idxmap)
-        while name != None and next < len(s) and s[next] != '\n':
-            name_nodes.append(name)
-            next = name.node_end
+        if next != None:
             name = str_to_name(s, next, idxmap)
-        node.name_nodes = name_nodes
-        node._fields += ('name_nodes',)
+            while name != None and next < len(s) and s[next] != '\n':
+                name_nodes.append(name)
+                next = name.node_end
+                name = str_to_name(s, next, idxmap)
+            node.name_nodes = name_nodes
+            node._fields += ('name_nodes',)
 
     node.extraAttribute = True
 

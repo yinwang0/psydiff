@@ -2,10 +2,14 @@
 #                   improvements to the AST
 #-------------------------------------------------------------
 
+import sys
+
 from ast import *
 from utils import *
 from parameters import *
 
+# Is it Python 3?
+python3 = (sys.version_info.major == 3)
 
 allNodes1 = set()
 allNodes2 = set()
@@ -140,6 +144,10 @@ def find_node_end(node, s, idxmap):
     elif isinstance(node, ClassDef):
         the_end = find_node_end(node.body, s, idxmap)
 
+    # print will be a Call in Python 3
+    elif not python3 and isinstance(node, Print):
+        the_end = start_seq(s, '\n', find_node_start(node, s, idxmap))
+
     elif isinstance(node, Call):
         start = find_node_end(node.func, s, idxmap)
         if start != None:
@@ -153,9 +161,6 @@ def find_node_end(node, s, idxmap):
             the_end = find_node_end(node.value, s, idxmap)
         else:
             the_end = find_node_start(node, s, idxmap) + len('return')
-
-    elif isinstance(node, Print):
-        the_end = start_seq(s, '\n', find_node_start(node, s, idxmap))
 
     elif (isinstance(node, For) or
           isinstance(node, While) or
@@ -197,7 +202,8 @@ def find_node_end(node, s, idxmap):
     elif isinstance(node, Dict):
         the_end = match_paren(s, '{', '}', find_node_start(node, s, idxmap));
 
-    elif isinstance(node, TryExcept):
+    elif ((not python3 and isinstance(node, TryExcept)) or
+          (python3 and isinstance(node, Try))):
         if node.orelse != []:
             the_end = find_node_end(node.orelse, s, idxmap)
         elif node.handlers != []:
@@ -439,7 +445,7 @@ def str_to_name(s, start, idxmap):
 def convert_ops(ops, s, start, idxmap):
     syms = []
     for op in ops:
-        if ops_map.has_key(type(op)):
+        if type(op) in ops_map:
             syms.append(ops_map[type(op)])
         else:
             print("[WARNING] operator %s is missing from ops_map, " \

@@ -82,7 +82,7 @@ def ins_node(node):
 # 2-D array table for memoization of dynamic programming
 def create_table(x, y):
     table = []
-    for i in xrange(x+1):
+    for i in range(x+1):
         table.append([None] * (y+1))
     return table
 
@@ -227,8 +227,9 @@ def diff_node(node1, node2, depth, move):
         fs1 = node_fields(node1)
         fs2 = node_fields(node2)
         changes, cost = [], 0
+        min_len = min(len(fs1), len(fs2))
 
-        for i in xrange(len(fs1)):
+        for i in range(min_len):
             (m, c) = diff_node(fs1[i], fs2[i], depth, move)
             changes = m + changes
             cost += c
@@ -376,12 +377,12 @@ def move_candidate(node):
 
 def match_up(changes, round=0):
 
-    deletions = filter(lambda p: (p.cur is None and
+    deletions = lfilter(lambda p: (p.cur is None and
                                   move_candidate(p.orig) and
                                   not p.is_frame),
                        changes)
 
-    insertions = filter(lambda p: (p.orig is None and
+    insertions = lfilter(lambda p: (p.orig is None and
                                    move_candidate(p.cur) and
                                    not p.is_frame),
                         changes)
@@ -452,7 +453,7 @@ def find_moves(res):
     while move_round <= MOVE_ROUND and matched != []:
         (matched, new_changes, c) = match_up(changes, move_round)
         move_round += 1
-        changes = filter(lambda c: c not in matched, changes)
+        changes = lfilter(lambda c: c not in matched, changes)
         changes.extend(new_changes)
         savings = sum(map(lambda p: node_size(p.orig) + node_size(p.cur), matched))
         cost = cost + c - savings
@@ -483,9 +484,10 @@ def diff(file1, file2, move=True):
     f1 = open(file1, 'r');
     lines1 = f1.read()
     f1.close()
+
     try:
         node1 = parse(lines1)
-    except SyntaxError:
+    except Exception:
         print('file %s cannot be parsed' % file1)
         exit(-1)
 
@@ -495,9 +497,10 @@ def diff(file1, file2, move=True):
     f2 = open(file2, 'r');
     lines2 = f2.read()
     f2.close()
+
     try:
         node2 = parse(lines2)
-    except SyntaxError:
+    except Exception:
         print('file %s cannot be parsed' % file2)
         exit(-1)
 
@@ -511,8 +514,6 @@ def diff(file1, file2, move=True):
 
     print("\n[diff] processed %d nodes in %s."
           % (stat.diff_count, sec_to_min(checkpoint())))
-
-    print("\nfinished in %s." % sec_to_min(checkpoint()))
 
 
     #---------------------- print final stats ---------------------

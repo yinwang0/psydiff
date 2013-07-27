@@ -44,8 +44,10 @@ def node_start(node):
 
 
 def node_end(node):
-    return node.node_end
-
+    if hasattr(node, 'node_end'):
+        return node.node_end
+    else:
+        return None
 
 
 def is_atom(x):
@@ -294,4 +296,8 @@ def get_install_path():
     exec_name = os.path.abspath(__file__)
     path = exec_name.rindex('/') + 1
     return exec_name[:path]
+
+
+def lfilter(f, ls):
+    return list(filter(f, ls))
 

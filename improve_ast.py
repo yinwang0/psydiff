@@ -470,10 +470,13 @@ ops_map = {
     And : 'and',
     Not : 'not',
 
+    # bit operators
     BitOr : '|',
     BitAnd : '&',
     BitXor : '^',
-    
+    RShift : '>>',
+    LShift : '<<',
+
 
     # BinOp
     Add  : '+',
@@ -482,11 +485,9 @@ ops_map = {
     Div  : '/',
     FloorDiv : '//',
     Mod  : '%',
-    RShift : '>>',
-    LShift : '<<',
+    Pow : '**',
 
     # UnaryOp
     USub : '-',
     UAdd : '+',
 }
-

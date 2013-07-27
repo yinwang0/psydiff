@@ -88,6 +88,8 @@ def find_node_start(node, s, idxmap):
 
 def find_node_end(node, s, idxmap):
 
+    the_end = -1
+
     if hasattr(node, 'node_end'):
         return node.node_end
 
@@ -117,8 +119,6 @@ def find_node_end(node, s, idxmap):
 
         if q != '':
             the_end = end_seq(s, q, i)
-        else:
-            the_end = -1
 
     elif isinstance(node, Name):
         the_end = find_node_start(node, s, idxmap) + len(node.id)
@@ -184,7 +184,8 @@ def find_node_end(node, s, idxmap):
         the_end = match_paren(s, '[', ']', find_node_start(node, s, idxmap));
 
     elif isinstance(node, Tuple):
-        the_end = find_node_end(node.elts[-1], s, idxmap)
+        if node.elts != []:
+            the_end = find_node_end(node.elts[-1], s, idxmap)
 
     elif isinstance(node, Dict):
         the_end = match_paren(s, '{', '}', find_node_start(node, s, idxmap));

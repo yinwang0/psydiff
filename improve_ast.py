@@ -349,7 +349,7 @@ def end_seq(s, pat, start):
 
 # find matching close paren from start
 def match_paren(s, open, close, start):
-    while s[start] <> open and start < len(s):
+    while start < len(s) and s[start] <> open:
         start += 1
     if start >= len(s):
         return len(s)

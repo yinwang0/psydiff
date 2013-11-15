@@ -1,6 +1,23 @@
-### Psydiff: a structural comparison tool for Python
+Psydiff
+=======
 
-Psydiff is the forerunner of ydiff, which I implemented around 2011. Later I developed ydiff based on the same algorithm, while supporting multiple languages. Unfortunately I never got a chance to write a Python parser for ydiff. Thus I put the original code for Psydiff here, just in hope it can be useful to someone.
+*a structural comparison tool for Python*
+
+<a href="https://sourcegraph.com/github.com/yinwang0/psydiff">
+<img src="https://sourcegraph.com/api/repos/github.com/yinwang0/psydiff/counters/views.png">
+</a>
+
+
+Psydiff is a structural differencer for Python. It parses Python into ASTs,
+compare them, and then generate interactive HTML.
+
+
+### Demo
+
+A demo of Psydiff's output (Psydiff diffing itself over a recent big change) can
+be found here:
+
+http://www.yinwang.org/resources/pydiff1-pydiff2.html
 
 
 
@@ -22,14 +39,6 @@ You can then use your browser to open this file and browse around the code.
 
 The HTML is a standalone entity (CSS styles and JavaScript embedded). You can
 put it anywhere you like and still be able to view it.
-
-
-
-### Demo
-
-A demo of Psydiff's output (Psydiff diffing itself over a recent big change) can be found here:
-
-http://www.yinwang.org/resources/pydiff1-pydiff2.html
 
 
 

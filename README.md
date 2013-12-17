@@ -14,6 +14,8 @@ compare them, and then generate interactive HTML.
 
 ### Demo
 
+<img src="http://yinwang0.files.wordpress.com/2013/07/pydiff.png?w=500">
+
 A demo of Psydiff's output (Psydiff diffing itself over a recent big change) can
 be found here:
 

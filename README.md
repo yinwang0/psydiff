@@ -14,7 +14,7 @@ compare them, and then generate interactive HTML.
 
 ### Demo
 
-<a href="http://www.yinwang.org/resources/pydiff1-pydiff2.html"><img src="http://yinwang0.files.wordpress.com/2013/07/psydiff2.gif?w=400"></a>
+<a href="http://www.yinwang.org/resources/pydiff1-pydiff2.html"><img src="http://yinwang0.files.wordpress.com/2013/07/psydiff2.gif?w=600"></a>
 
 A demo of Psydiff's output (Psydiff diffing itself over a recent big change) can
 be found here:

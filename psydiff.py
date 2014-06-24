@@ -607,9 +607,14 @@ def diff_file(file1, file2):
     return diff_node(node1, node2, 0)
 
 
-## if run under command line
-## psydiff.py file1.py file2.py
-if len(sys.argv) == 3:
-    file1 = sys.argv[1]
-    file2 = sys.argv[2]
-    diff(file1, file2)
+def main():
+    ## if run under command line
+    ## psydiff.py file1.py file2.py
+    if len(sys.argv) == 3:
+        file1 = sys.argv[1]
+        file2 = sys.argv[2]
+        diff(file1, file2)
+
+
+if __name__ == '__main__':
+    main()

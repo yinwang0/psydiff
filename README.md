@@ -3,11 +3,6 @@ psydiff
 
 *a structural comparison tool for Python*
 
-<a href="https://sourcegraph.com/github.com/yinwang0/psydiff">
-<img src="https://sourcegraph.com/api/repos/github.com/yinwang0/psydiff/counters/views.png">
-</a>
-
-
 Psydiff is a structural differencer for Python. It parses Python into ASTs,
 compare them, and then generate interactive HTML.
 
